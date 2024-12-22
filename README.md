@@ -1,2 +1,3 @@
 # hw-edf
-An EDF-based interrupt controller
+
+An interrupt controller for deadline-based interrupt handling.
