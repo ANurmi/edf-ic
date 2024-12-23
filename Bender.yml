@@ -11,7 +11,7 @@ sources:
   # levels 1 and 0, etc. Files within a level are ordered alphabetically.
   files:
   # Level 0
-    - seq_prio_queue.sv
+    - rtl/seq_prio_queue.sv
   # Level 1
-    - rtl/edf-ic.sv
+    - rtl/edf_ic.sv
 

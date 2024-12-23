@@ -11,6 +11,9 @@ module edf_ic #(
   output logic     [IdWidth-1:0] irq_id_o
 );
 
-
+seq_prio_queue i_pq (
+  .clk_i,
+  .rst_ni
+);
 
 endmodule : edf_ic
