@@ -17,6 +17,7 @@ verilate:
 	-O3 \
 	-sv \
 	--timing \
+	--x-assign unique \
 	--trace-fst \
 	--trace-structs \
 	--trace-params \
