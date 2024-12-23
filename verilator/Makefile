@@ -14,9 +14,15 @@ verilate:
 	$(shell bender script flist) \
 	--cc $(VERIL_DIR)/$(DUT).cpp \
 	--build --exe \
+	-O3 \
+	-sv \
+	--timing \
+	--trace-fst \
+	--trace-structs \
+	--trace-params \
 	--top-module $(DUT) \
-	-Mdir $(BUILD_DIR)
+	-Mdir $(BUILD_DIR)/obj_dir
 
 .PHONY: simv
 simv:
-	$(BUILD_DIR)/V$(DUT)
+	$(BUILD_DIR)/obj_dir/V$(DUT)
