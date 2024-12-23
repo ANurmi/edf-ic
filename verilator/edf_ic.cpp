@@ -18,26 +18,26 @@ int main(int argc, char** argv) {
   VerilatedFstC* tfp      = new VerilatedFstC;
   Vedf_ic*       top      = new Vedf_ic;
   vluint64_t     sim_time = 0;
+  int            tx_count = 0;
 
   SimCtx cx(top, tfp, sim_time);
 
   IrqTx* tx;
-  IrqDrv* drv = new IrqDrv(cx.dut);
+  IrqDrv* drv = new IrqDrv(&cx);
 
   cx.dut->trace(cx.trace, 5);
   cx.trace->open("../build/waveform.fst");
 
-  reset_dut(cx);
-  timestep_half_clock(cx, 30);
-  while (cx.sim_time < 200){
-    printf("Sending tx\n");
+  reset_dut(&cx);
+  timestep_half_clock(&cx, 30);
+  while (tx_count < 50){
 
     tx = rndIrqTx();
     drv->drive(tx);
 
-    timestep_half_clock(cx, 30);
-    printf("sim_time %ld\n", cx.sim_time);
+    timestep_half_clock(&cx, 30);
 
+    tx_count++;
     //tx = 
   }
   cx.trace->close();
