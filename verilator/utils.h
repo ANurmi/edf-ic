@@ -17,6 +17,11 @@ void timestep_half_clock( SimCtx* cx, vluint64_t count){
   }
 }
 
+void step_cc (SimCtx* cx, vluint64_t count) {
+  for(int it = 0; it < count; it++)
+    timestep_half_clock(cx, 2);
+}
+
 void reset_dut( SimCtx* cx ) {
     cx->dut->clk_i  = 0;
     cx->dut->rst_ni = 0;

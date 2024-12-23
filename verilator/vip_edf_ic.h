@@ -4,8 +4,8 @@ class IrqTx {
 };
 
 IrqTx* rndIrqTx(){
-    //25% chance of generating a transaction
-    if(rand()%4 == 0){
+    //33% chance of generating a transaction
+    if(rand()%3 == 0){
         IrqTx *tx = new IrqTx();
         tx->vec = 0;
 
