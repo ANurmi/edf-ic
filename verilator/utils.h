@@ -8,7 +8,7 @@ struct SimCtx {
         sim_time(sim_time){}
 };
 
-void timestep_half_clock( SimCtx* cx, vluint64_t count){
+void step_half_cc( SimCtx* cx, vluint64_t count){
   for(int it = 0; it < count; it++){
     cx->dut->clk_i ^= 1;
     cx->dut->eval();
@@ -19,13 +19,16 @@ void timestep_half_clock( SimCtx* cx, vluint64_t count){
 
 void step_cc (SimCtx* cx, vluint64_t count) {
   for(int it = 0; it < count; it++)
-    timestep_half_clock(cx, 2);
+    step_half_cc(cx, 2);
 }
 
 void reset_dut( SimCtx* cx ) {
-    cx->dut->clk_i  = 0;
-    cx->dut->rst_ni = 0;
-    cx->dut->irq_i  = 0;
-    timestep_half_clock(cx, 23);
-    cx->dut->rst_ni = 1;
+    cx->dut->clk_i        = 0;
+    cx->dut->rst_ni       = 0;
+    cx->dut->irq_i        = 0;
+    cx->dut->cfg_req_i    = 0;
+    cx->dut->cfg_addr_i   = 0;
+    cx->dut->cfg_wdata_i  = 0;
+    step_half_cc(cx, 23);
+    cx->dut->rst_ni       = 1;
 }

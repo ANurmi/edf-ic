@@ -7,6 +7,9 @@ module edf_ic #(
 )(
   input  logic                   clk_i,
   input  logic                   rst_ni,
+  input  logic                   cfg_req_i,
+  input  logic            [31:0] cfg_addr_i,
+  input  logic            [31:0] cfg_wdata_i,
   input  logic   [NrParIrqs-1:0] irq_i,
   output logic     [IdWidth-1:0] irq_id_o
 );

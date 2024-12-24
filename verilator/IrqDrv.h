@@ -32,7 +32,7 @@ class IrqDrv {
             if(tx != NULL){
                 cx->dut->irq_i = tx->vec;
                 printf("[TB] Driving vector %x at time %ld\n", tx->vec, cx->sim_time);
-                timestep_half_clock(cx, 2);
+                step_half_cc(cx, 2);
                 cx->dut->irq_i = 0;
                 // Release the memory by deleting the tx item
                 // after it has been consumed

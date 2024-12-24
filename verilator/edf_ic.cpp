@@ -8,7 +8,8 @@
 #include "verilated.h"
 #include "verilated_fst_c.h"
 #include "utils.h"
-#include "vip_edf_ic.h"
+#include "IrqDrv.h"
+#include "CfgDrv.h"
 
 int main(int argc, char** argv) {
   // init stage
@@ -21,18 +22,26 @@ int main(int argc, char** argv) {
 
   SimCtx cx(top, tfp, sim_time);
   IrqTx* tx;
-  IrqDrv* drv = new IrqDrv(&cx);
+  CfgTx* cfg_tx;
+  IrqDrv* idrv = new IrqDrv(&cx);
+  CfgDrv* cdrv = new CfgDrv(&cx);
 
   cx.dut->trace(cx.trace, 5);
   cx.trace->open("../build/waveform.fst");
 
   // Run stage
   reset_dut(&cx);
-  timestep_half_clock(&cx, 17);
+  step_half_cc(&cx, 17);
+
+  cfg_tx = new CfgTx(4, 0xDEADBEEF);
+  cdrv->drive(cfg_tx);
+  cfg_tx = new CfgTx(8, 0xC0FEBEBE);
+  cdrv->drive(cfg_tx);
+
   while (tx_count < 50){
 
     tx = rndIrqTx();
-    drv->drive(tx);
+    idrv->drive(tx);
 
     step_cc(&cx, 1);
     tx_count++;
@@ -40,7 +49,8 @@ int main(int argc, char** argv) {
   
   // end stage
   cx.trace->close();
-  delete drv;
+  delete idrv;
+  delete cdrv;
   delete top;
   delete tfp;
 
