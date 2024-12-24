@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <stdint.h>
 
 #define NR_IRQS 2
@@ -21,10 +22,11 @@ int main(int argc, char** argv) {
   int            tx_count = 0;
 
   SimCtx cx(top, tfp, sim_time);
-  IrqTx* tx;
+  IrqInTx* tx;
   CfgTx* cfg_tx;
   IrqDrv* idrv = new IrqDrv(&cx);
   CfgDrv* cdrv = new CfgDrv(&cx);
+  IrqScb* scb  = new IrqScb(&cx);
 
   cx.dut->trace(cx.trace, 5);
   cx.trace->open("../build/waveform.fst");
@@ -33,18 +35,14 @@ int main(int argc, char** argv) {
   reset_dut(&cx);
   step_half_cc(&cx, 17);
 
-  cfg_tx = new CfgTx(4, 0xDEADBEEF);
-  cdrv->drive(cfg_tx);
-  cfg_tx = new CfgTx(8, 0xC0FEBEBE);
-  cdrv->drive(cfg_tx);
+  cdrv->drive(new CfgTx(4, 0xDEADBEEF));
+  cdrv->drive(new CfgTx(8, 0xC0FEBEBE));
 
   while (tx_count < 50){
-
-    tx = rndIrqTx();
+    tx = rndIrqInTx();
+    if (tx != NULL)
+      tx_count++;
     idrv->drive(tx);
-
-    step_cc(&cx, 1);
-    tx_count++;
   }
   
   // end stage
@@ -52,6 +50,7 @@ int main(int argc, char** argv) {
   delete idrv;
   delete cdrv;
   delete top;
+  delete scb;
   delete tfp;
 
   printf("########################################################\n");
