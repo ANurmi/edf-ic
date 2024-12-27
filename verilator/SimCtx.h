@@ -8,6 +8,35 @@ struct SimCtx {
         sim_time(sim_time){}
 };
 
+class IrqInTx {
+    public:
+        uint32_t vec;
+};
+
+class IrqOutTx {
+    public:
+        uint32_t id;
+};
+
+class Compare {
+    public:
+        bool operator() (IrqInTx* a, IrqInTx* b) {
+            return a->vec < b->vec;
+        }
+};
+
+
+class CfgTx {
+    public:
+        uint32_t addr;
+        uint32_t wdata;
+
+        CfgTx(uint32_t addr, uint32_t wdata){
+            this->addr  = addr;
+            this->wdata = wdata;
+        }
+};
+
 void step_half_cc( SimCtx* cx, vluint64_t count){
   for(int it = 0; it < count; it++){
     cx->dut->clk_i ^= 1;

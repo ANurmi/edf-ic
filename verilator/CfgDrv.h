@@ -1,14 +1,3 @@
-class CfgTx {
-    public:
-        uint32_t addr;
-        uint32_t wdata;
-
-        CfgTx(uint32_t addr, uint32_t wdata){
-            this->addr  = addr;
-            this->wdata = wdata;
-        }
-};
-
 class CfgDrv {
     private:
         SimCtx* cx;
@@ -28,5 +17,23 @@ class CfgDrv {
             cx->dut->cfg_addr_i  = 0;
             cx->dut->cfg_wdata_i = 0;
             delete tx;
+        }
+};
+
+class CfgMon {
+    private:
+        Vedf_ic *dut;
+        EdfScb *scb;
+    public:
+        CfgMon(Vedf_ic *dut, EdfScb *scb){
+            this->dut = dut;
+            this->scb = scb;
+        }
+
+        void monitor(){
+            CfgTx *tx = new CfgTx(dut->cfg_addr_i, dut->cfg_wdata_i);
+            printf("[CfgMon] addr: %x\n", tx->addr);
+            printf("[CfgMon] wdata: %x\n", tx->wdata);
+            scb->writeCfg(tx);
         }
 };
