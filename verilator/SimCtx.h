@@ -18,14 +18,6 @@ class IrqOutTx {
         uint32_t id;
 };
 
-class Compare {
-    public:
-        bool operator() (IrqInTx* a, IrqInTx* b) {
-            return a->vec < b->vec;
-        }
-};
-
-
 class CfgTx {
     public:
         uint32_t addr;

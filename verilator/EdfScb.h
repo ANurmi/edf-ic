@@ -1,8 +1,26 @@
+struct IrqStruct
+{
+    int idx;
+    vluint64_t deadline;
+    IrqStruct(int idx, vluint64_t deadline) {
+        this->idx      = idx;
+        this->deadline = deadline;
+    }
+};
+
+class Compare {
+    public:
+        bool operator() (IrqStruct* a, IrqStruct* b) {
+            return a->deadline > b->deadline;
+        }
+};
 
 class EdfScb
 {
     private:
-        std::priority_queue<IrqInTx*, std::vector<IrqInTx*>, Compare> in_tx;
+        //std::priority_queue<IrqInTx*, std::vector<IrqInTx*>, Compare> in_tx;
+        std::priority_queue<IrqStruct*, std::vector<IrqStruct*>, Compare> pq;
+        std::vector<uint32_t> cfg_regs{std::vector<uint32_t>(NR_IRQS, 0)};
         SimCtx* cx;
     public:
         EdfScb(SimCtx* cx){
@@ -10,20 +28,50 @@ class EdfScb
         }
     
         void writeIn(IrqInTx* tx){
-            this->in_tx.push(tx);
+            //printf("[writeIn] writing %x\n", tx->vec);
+            for (int i=0; i<NR_IRQS; i++){
+                if (tx->vec & (1 << i)){
+                    if (pq.size() < NR_IRQS) {
+                        IrqStruct* entry = new IrqStruct(i, cfg_regs[i]);
+                        pq.push(entry);
+                    } else if (tx->vec != 0)
+                        printf("[Scb] Queue full! Push rejected\n");
+                }
+            }
         }
 
-        void writeCfg(CfgTx* tx) {}
+        void writeCfg(CfgTx* tx) {
+            cfg_regs[(tx->addr)/4] = tx->wdata;
+        }
+
+        void print_config(){
+            printf("[Scb] printing cfg reg values:\n");
+            for (int i=0; i<NR_IRQS; i++)
+            {
+                printf("[Scb] cfg_reg[%d]: %x\n", i, cfg_regs[i]);
+            }
+        }
 
         void writeOut(IrqOutTx* tx){
 
         }
-        void count() {
-            printf("[Scb] num. entries %d\n", in_tx.size());
+        void get_count() {
+            printf("[Scb] num. entries %ld\n", pq.size());
         }
-        void head() {
-            if (!in_tx.empty())
-                printf("[Scb] head: %x\n", in_tx.top()->vec);
+        void get_head() {
+            if (!pq.empty())
+                printf("[Scb] head: %lx\n", pq.top()->deadline);
+        }
+        void print_queue() {
+            printf("[Scb] Printing internal priority queue:\n");
+            int i = 0;
+            while (!pq.empty()){
+                IrqStruct* item = pq.top();
+                printf("| pos: %d | irq_idx: %x | deadline: %08x |\n", i, item->idx, item->deadline);
+                pq.pop();
+                i++;
+            }
+            
         }
 
 };

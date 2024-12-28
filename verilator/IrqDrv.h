@@ -23,7 +23,7 @@ class IrqDrv {
             // Don't drive anything if a transaction item doesn't exist
             if(tx != NULL){
                 cx->dut->irq_i = tx->vec;
-                printf("[TB] Driving vector %x at time %ld\n", tx->vec, cx->sim_time);
+                printf("[IrqDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
                 delete tx;
             }
         }
@@ -42,8 +42,6 @@ class IrqInMon {
         void monitor(){
             IrqInTx *tx = new IrqInTx();
             tx->vec = dut->irq_i;
-            printf("[InMon] vec: %x\n", tx->vec);
-            printf("[InMon] irq_i: %x\n", dut->irq_i);
             scb->writeIn(tx);
         }
 };

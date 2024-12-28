@@ -1,6 +1,6 @@
 module edf_ic #(
   parameter  int unsigned SerLatency = 1,
-  parameter  int unsigned NrParIrqs  = 2,
+  parameter  int unsigned NrParIrqs  = 4,
   localparam int unsigned IdWidth    = $clog2(NrParIrqs),
   // This fraction must be an integer
   localparam int unsigned PqClkMult  = (NrParIrqs / SerLatency)

@@ -3,7 +3,7 @@
 #include <queue>
 #include <stdint.h>
 
-#define NR_IRQS 2
+#define NR_IRQS 4
 
 #include "Vedf_ic.h"
 #include "verilated.h"
@@ -17,11 +17,11 @@ int main(int argc, char** argv) {
   // init stage
   //Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
-  VerilatedFstC* tfp      = new VerilatedFstC;
-  Vedf_ic*       top      = new Vedf_ic;
-  vluint64_t     sim_time = 0;
-  int            tx_count = 0;
-  bool           first_it = true;
+  VerilatedFstC* tfp       = new VerilatedFstC;
+  Vedf_ic*       top       = new Vedf_ic;
+  vluint64_t     sim_time  = 0;
+  int            tx_count  = 0;
+  int            cfg_instr = 0;
 
   SimCtx cx(top, tfp, sim_time);
   IrqInTx* tx;
@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
   IrqDrv* idrv       = new IrqDrv(&cx);
   CfgDrv* cdrv       = new CfgDrv(&cx);
   EdfScb* scb        = new EdfScb(&cx);
+  CfgMon* cfg_mon    = new CfgMon(top, scb);
   IrqInMon* in_mon   = new IrqInMon(top, scb);
   IrqOutMon* out_mon = new IrqOutMon(top, scb);
 
@@ -39,29 +40,55 @@ int main(int argc, char** argv) {
   reset_dut(&cx);
   step_half_cc(&cx, 17);
 
+  while (cfg_instr < NR_IRQS) {
+      CfgTx* cfg = new CfgTx(0, 0);
+
+      switch (cfg_instr)
+      {
+        case 0:
+          cfg->addr  = 0;
+          cfg->wdata = 0xDEADBEEF;
+          break;
+        case 1:
+          cfg->addr  = 4;
+          cfg->wdata = 0x1000;
+          break;
+        case 2:
+          cfg->addr  = 8;
+          cfg->wdata = 0x2000;
+          break;
+
+        case 3:
+          cfg->addr  = 12;
+          cfg->wdata = 0x0100;
+          break;
+
+
+        default:
+          break;
+      }
+
+      cdrv->drive(cfg);
+      cfg_mon->monitor();
+      step_cc(&cx, 1);
+      cfg_instr++;
+  }
+
   while (tx_count < 10){ // main tb loop
 
-    if (first_it) {
-      cdrv->drive(new CfgTx(4, 0xDEADBEEF));
-      cdrv->drive(new CfgTx(8, 0xC0FEBEBE));
-      first_it = false;
-    }
     tx = rndIrqInTx();
 
     idrv->drive(tx);
     in_mon->monitor();
     out_mon->monitor();
-    scb->count();
-
-    scb->head();
-    //tx_count++;
-    //printf("[TB] tx_count %d\n", tx_count);
     tx_count++;
 
     step_half_cc(&cx, 2);
   }
   
   // end stage
+  scb->print_queue();
+
   cx.trace->close();
   delete idrv;
   delete cdrv;
