@@ -1,5 +1,5 @@
 IrqInTx* rndIrqInTx(){
-    if (rand() % 10 == 0){
+    if (rand() % 20 == 0){
         
         IrqInTx *tx = new IrqInTx();
         tx->vec = 0;

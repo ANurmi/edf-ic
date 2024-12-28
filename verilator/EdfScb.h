@@ -53,7 +53,11 @@ class EdfScb
         }
 
         void writeOut(IrqOutTx* tx){
-
+            if (!pq.empty()) 
+                if (tx->id != pq.top()->idx)
+                    printf("[Scb] output mismatch! DUT: %d | Scoreboard: %d\n", 
+                                tx->id, pq.top()->idx);
+            
         }
         void get_count() {
             printf("[Scb] num. entries %ld\n", pq.size());

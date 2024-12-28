@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define NR_IRQS  4
-#define PRESCALE 8
+#define PRESCALE 2
 
 #include "Vedf_ic.h"
 #include "verilated.h"
@@ -50,20 +50,20 @@ int main(int argc, char** argv) {
       {
         case 0:
           cfg->addr  = 0;
-          cfg->wdata = 0xDEADBEEF;
+          cfg->wdata = 0x12;
           break;
         case 1:
           cfg->addr  = 4;
-          cfg->wdata = 0x1000;
+          cfg->wdata = 0x6;
           break;
         case 2:
           cfg->addr  = 8;
-          cfg->wdata = 0x2000;
+          cfg->wdata = 0x22;
           break;
 
         case 3:
           cfg->addr  = 12;
-          cfg->wdata = 0x0100;
+          cfg->wdata = 0x15;
           break;
 
 
@@ -76,6 +76,9 @@ int main(int argc, char** argv) {
       step_cc(&cx, 1);
       cfg_instr++;
   }
+  cx.dut->cfg_req_i   = 0;
+  cx.dut->cfg_addr_i  = 0;
+  cx.dut->cfg_wdata_i = 0;
 
   while (tx_count < 10){ // main tb loop
 
