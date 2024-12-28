@@ -3,7 +3,8 @@
 #include <queue>
 #include <stdint.h>
 
-#define NR_IRQS 4
+#define NR_IRQS  4
+#define PRESCALE 8
 
 #include "Vedf_ic.h"
 #include "verilated.h"
@@ -20,6 +21,8 @@ int main(int argc, char** argv) {
   VerilatedFstC* tfp       = new VerilatedFstC;
   Vedf_ic*       top       = new Vedf_ic;
   vluint64_t     sim_time  = 0;
+  vluint64_t     mtimer    = 0;
+  uint8_t        mtime_pre = 0;
   int            tx_count  = 0;
   int            cfg_instr = 0;
 
@@ -78,12 +81,25 @@ int main(int argc, char** argv) {
 
     tx = rndIrqInTx();
 
+    if (tx != NULL) {
+      tx_count++;
+    } else {
+      tx = new IrqInTx();
+      tx->vec = 0;
+    }
+
     idrv->drive(tx);
     in_mon->monitor();
     out_mon->monitor();
-    tx_count++;
 
     step_half_cc(&cx, 2);
+
+    if (mtime_pre == PRESCALE-1) {
+      mtime_pre = 0;
+      mtimer++;
+    } else
+      mtime_pre++;
+    cx.dut->mtime_i = mtimer;
   }
   
   // end stage

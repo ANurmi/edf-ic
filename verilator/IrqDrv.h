@@ -1,13 +1,15 @@
-
 IrqInTx* rndIrqInTx(){
-    //33% chance of generating a transaction
-    IrqInTx *tx = new IrqInTx();
-    tx->vec = 0;
+    if (rand() % 10 == 0){
+        
+        IrqInTx *tx = new IrqInTx();
+        tx->vec = 0;
 
-    // set random bits on all irq lines
-    for (int i=0; i<NR_IRQS; i++)
-        tx->vec |= (rand() % 2) << i;
-    return tx;
+        for (int i=0; i<NR_IRQS; i++)
+            tx->vec |= (rand() % 2) << i;
+    
+        return tx;
+    } else
+        return NULL;
 }
 
 
@@ -23,7 +25,8 @@ class IrqDrv {
             // Don't drive anything if a transaction item doesn't exist
             if(tx != NULL){
                 cx->dut->irq_i = tx->vec;
-                printf("[IrqDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
+                if (tx->vec != 0)
+                    printf("[IrqDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
                 delete tx;
             }
         }

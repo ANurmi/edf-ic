@@ -32,7 +32,7 @@ class EdfScb
             for (int i=0; i<NR_IRQS; i++){
                 if (tx->vec & (1 << i)){
                     if (pq.size() < NR_IRQS) {
-                        IrqStruct* entry = new IrqStruct(i, cfg_regs[i]);
+                        IrqStruct* entry = new IrqStruct(i, cfg_regs[i] + cx->dut->mtime_i);
                         pq.push(entry);
                     } else if (tx->vec != 0)
                         printf("[Scb] Queue full! Push rejected\n");
@@ -67,7 +67,7 @@ class EdfScb
             int i = 0;
             while (!pq.empty()){
                 IrqStruct* item = pq.top();
-                printf("| pos: %d | irq_idx: %x | deadline: %08x |\n", i, item->idx, item->deadline);
+                printf("| pos: %d | irq_idx: %x | deadline: %08lx |\n", i, item->idx, item->deadline);
                 pq.pop();
                 i++;
             }
