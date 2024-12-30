@@ -5,6 +5,10 @@ module gateway_cell #(
   input  logic               rst_ni,
   input  logic        [63:0] mtime_i,
   input  logic               irq_i,
+  input  logic               cfg_req_i,
+  input  logic               cfg_we_i,
+  input  logic        [31:0] cfg_wdata_i,
+  output logic        [31:0] cfg_rdata_o,
   output logic [TsWdith-1:0] dl_o,
   output logic               ip_o
 );
