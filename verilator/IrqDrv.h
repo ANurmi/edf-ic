@@ -61,7 +61,8 @@ class IrqOutMon {
 
         void monitor(){
             IrqOutTx *tx = new IrqOutTx();
-            tx->id = dut->irq_id_o;
+            if (dut->irq_valid_o)
+                tx->id = dut->irq_id_o;
             scb->writeOut(tx);
         }
 };

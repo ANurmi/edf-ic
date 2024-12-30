@@ -12,15 +12,17 @@ module edf_ic #(
   input  logic            [31:0] cfg_wdata_i,
   input  logic            [63:0] mtime_i,
   input  logic   [NrParIrqs-1:0] irq_i,
-  output logic     [IdWidth-1:0] irq_id_o
+  output logic     [IdWidth-1:0] irq_id_o,
+  output logic                   irq_valid_o,
+  input  logic                   irq_ready_i
 );
 
-seq_prio_queue #(
-  .NrParIrqs
-) i_pq (
-  .clk_i,
-  .rst_ni,
-  .irq_id_o
-);
+//seq_prio_queue #(
+//  .NrParIrqs
+//) i_pq (
+//  .clk_i,
+//  .rst_ni,
+//  .irq_id_o
+//);
 
 endmodule : edf_ic
