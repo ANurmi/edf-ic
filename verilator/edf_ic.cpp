@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 
   // Run stage
   reset_dut(&cx);
-  step_half_cc(&cx, 17);
+  step_half_cc(&cx, 16);
 
   while (cfg_instr < NR_IRQS) {
       CfgTx* cfg = new CfgTx(0, 0);

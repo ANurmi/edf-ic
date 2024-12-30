@@ -1,9 +1,7 @@
 module edf_ic #(
-  parameter  int unsigned SerLatency = 1,
-  parameter  int unsigned NrParIrqs  = 4,
-  localparam int unsigned IdWidth    = $clog2(NrParIrqs),
-  // This fraction must be an integer
-  localparam int unsigned PqClkMult  = (NrParIrqs / SerLatency)
+  parameter  int unsigned NrIrqs     = 4,
+  parameter  int unsigned TsWdith    = 64,
+  localparam int unsigned IdWidth    = $clog2(NrIrqs)
 )(
   input  logic                   clk_i,
   input  logic                   rst_ni,
@@ -11,18 +9,24 @@ module edf_ic #(
   input  logic            [31:0] cfg_addr_i,
   input  logic            [31:0] cfg_wdata_i,
   input  logic            [63:0] mtime_i,
-  input  logic   [NrParIrqs-1:0] irq_i,
+  input  logic      [NrIrqs-1:0] irq_i,
   output logic     [IdWidth-1:0] irq_id_o,
   output logic                   irq_valid_o,
   input  logic                   irq_ready_i
 );
 
-//seq_prio_queue #(
-//  .NrParIrqs
-//) i_pq (
-//  .clk_i,
-//  .rst_ni,
-//  .irq_id_o
-//);
+for (genvar i=0; i<NrIrqs; i++) begin : g_gateway
+  gateway_cell #(
+    .TsWdith (64)
+  ) i_gw_cell (
+    .clk_i,
+    .rst_ni,
+    .mtime_i,
+    .irq_i  (irq_i[i]),
+    .dl_o   (),
+    .ip_o   ()
+  );
+end
+
 
 endmodule : edf_ic
