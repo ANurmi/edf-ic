@@ -25,12 +25,14 @@ class IrqInDrv {
 
             // Don't drive anything if a transaction item doesn't exist
             if(tx != NULL){
-                if (cx->sim_time % 3 == 0) {
+                //if ((cx->sim_time-1) % 8 == 0) {
                     cx->dut->irq_i = tx->vec;
-                    if (tx->vec != 0)
+                    if (tx->vec != 0) {
                         printf("[IrqInDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
+                        //printf("simtime mod 8: %d \n",cx->sim_time % 8);
+                    }
                     delete tx;
-                }
+                //}
             }
         }
 };

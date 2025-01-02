@@ -16,19 +16,14 @@ module gateway_cell #(
 
 logic [TsWdith-1:0] timestamp, timestamp_r;
 logic [TsWdith-1:0] offset, offset_r;
-logic               ip_d, ip_q;
+logic               ip_q;
 
 always_comb
   begin
     timestamp = timestamp_r;
     offset    = offset_r;
-    ip_d      = ip_q;
     if (irq_i) begin
       timestamp = mtime_i;
-      ip_d      = irq_i;
-    end
-    if (claim_i) begin
-      ip_d      = 0;
     end
   end
 
@@ -41,7 +36,7 @@ always_ff @(posedge clk_i or negedge rst_ni)
     end else begin
       timestamp_r <= timestamp;
       offset_r    <= offset;
-      ip_q        <= ip_d;
+      ip_q        <= irq_i & !claim_i;
     end
   end
 

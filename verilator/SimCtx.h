@@ -28,18 +28,29 @@ class CfgTx {
             this->wdata = wdata;
         }
 };
+/*
 
-void delta_delay(SimCtx* cx) {
-  cx->dut->eval();
-  cx->trace->dump(cx->sim_time);
-  cx->sim_time++;
+void timestep(SimCtx* cx, vluint64_t count) {
+  for(int it = 0; it < count*4; it++){
+    cx->dut->eval();
+    cx->trace->dump(cx->sim_time);
+    cx->sim_time++;
+  }
 }
 
+void clock(SimCtx* cx, vluint64_t count) {
+  for (int i=0; i<count; i++){
+      if (cx->sim_time % CLOCK_STEP == 0){
+        cx->dut->clk_i ^= 1;
+      }
+      timestep(cx,1 );
+  }
+}
 void step_half_cc( SimCtx* cx, vluint64_t count){
   for(int it = 0; it < count*4; it++){
     if (it % 4 == 0)
       cx->dut->clk_i ^= 1;
-    delta_delay(cx);
+    timestep(cx);
   }
 }
 
@@ -57,4 +68,4 @@ void reset_dut( SimCtx* cx ) {
     cx->dut->cfg_wdata_i  = 0;
     step_half_cc(cx, 23);
     cx->dut->rst_ni       = 1;
-}
+}*/
