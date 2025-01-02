@@ -13,21 +13,45 @@ IrqInTx* rndIrqInTx(){
 }
 
 
-class IrqDrv {
+class IrqInDrv {
     private:
         SimCtx* cx;
     public:
-        IrqDrv(SimCtx* cx){
+        IrqInDrv(SimCtx* cx){
             this->cx = cx;
         }
 
         void drive(IrqInTx *tx){
             // Don't drive anything if a transaction item doesn't exist
             if(tx != NULL){
+                delta_delay(cx);
                 cx->dut->irq_i = tx->vec;
                 if (tx->vec != 0)
-                    printf("[IrqDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
+                    printf("[IrqInDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
                 delete tx;
+            }
+        }
+};
+
+class IrqOutDrv {
+    private:
+        SimCtx* cx;
+        uint8_t delay;
+    public:
+        IrqOutDrv(SimCtx* cx){
+            this->cx = cx;
+        }
+
+        // drive irq_ready_i with randomized latency after valid_o
+        void drive(){
+            cx->dut->irq_ready_i = 0;
+            if (cx->dut->irq_valid_o) {
+                delay += rand() % 200;
+                if (delay >= 200) {
+                    delay = 0;
+                    cx->dut->irq_ready_i = 1;
+                }
+                //printf("[outDrv] delay val: %d \n", delay);
             }
         }
 };
@@ -63,6 +87,7 @@ class IrqOutMon {
             IrqOutTx *tx = new IrqOutTx();
             if (dut->irq_valid_o)
                 tx->id = dut->irq_id_o;
-            scb->writeOut(tx);
+            if (dut->irq_ready_i)
+                scb->writeOut(tx);
         }
 };

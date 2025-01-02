@@ -29,12 +29,17 @@ class CfgTx {
         }
 };
 
+void delta_delay(SimCtx* cx) {
+  cx->dut->eval();
+  cx->trace->dump(cx->sim_time);
+  cx->sim_time++;
+}
+
 void step_half_cc( SimCtx* cx, vluint64_t count){
-  for(int it = 0; it < count; it++){
-    cx->dut->clk_i ^= 1;
-    cx->dut->eval();
-    cx->trace->dump(cx->sim_time);
-    cx->sim_time++;
+  for(int it = 0; it < count*4; it++){
+    if (it % 4 == 0)
+      cx->dut->clk_i ^= 1;
+    delta_delay(cx);
   }
 }
 

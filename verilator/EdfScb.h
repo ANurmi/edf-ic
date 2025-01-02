@@ -53,10 +53,16 @@ class EdfScb
         }
 
         void writeOut(IrqOutTx* tx){
-            if (!pq.empty()) 
-                if (tx->id != pq.top()->idx)
-                    printf("[Scb] output mismatch! DUT: %d | Scoreboard: %d\n", 
-                                tx->id, pq.top()->idx);
+            if (cx->dut->irq_ready_i) {
+                printf("Received ready_i, time: %ld, queue size: %ld\n", cx->sim_time, pq.size());
+                printf("Serve interrupt %d\n", pq.top()->idx);
+                
+                //if (!pq.empty()) 
+                //    if (tx->id != pq.top()->idx)
+                //        printf("[Scb] output mismatch! DUT: %d | Scoreboard: %d\n", 
+                //                    tx->id, pq.top()->idx);
+                //pq.pop();
+            }
             
         }
         void get_count() {

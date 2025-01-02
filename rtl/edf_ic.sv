@@ -19,14 +19,15 @@ module edf_ic #(
 );
 
 logic       [31:0] local_addr;
-logic [NrIrqs-1:0] req_arr;
+logic [NrIrqs-1:0] reqs;
+logic [NrIrqs-1:0] ips;
 
 assign local_addr = (cfg_addr_i - BaseAddr)/4;
-assign req_arr    = (1 << local_addr);
+assign reqs       = (1 << local_addr);
 
 for (genvar i=0; i<NrIrqs; i++) begin : g_gateway
   logic local_req;
-  assign local_req = req_arr[i] & cfg_req_i;
+  assign local_req = reqs[i] & cfg_req_i;
 
   gateway_cell #(
     .TsWdith (64)
@@ -39,10 +40,13 @@ for (genvar i=0; i<NrIrqs; i++) begin : g_gateway
     .cfg_wdata_i,
     .cfg_rdata_o,
     .irq_i       (irq_i[i]),
+    .claim_i     (irq_ready_i),
     .dl_o        (),
-    .ip_o        ()
+    .ip_o        (ips[i])
   );
 end
 
+//TEMPORARY
+assign irq_valid_o = |ips;
 
 endmodule : edf_ic

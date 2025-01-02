@@ -29,7 +29,8 @@ int main(int argc, char** argv) {
   SimCtx cx(top, tfp, sim_time);
   IrqInTx* tx;
   CfgTx* cfg_tx;
-  IrqDrv* idrv       = new IrqDrv(&cx);
+  IrqInDrv*  idrv    = new IrqInDrv(&cx);
+  IrqOutDrv* odrv    = new IrqOutDrv(&cx);
   CfgDrv* cdrv       = new CfgDrv(&cx);
   EdfScb* scb        = new EdfScb(&cx);
   CfgMon* cfg_mon    = new CfgMon(top, scb);
@@ -41,7 +42,7 @@ int main(int argc, char** argv) {
 
   // Run stage
   reset_dut(&cx);
-  step_half_cc(&cx, 16);
+  step_half_cc(&cx, 17);
 
   while (cfg_instr < NR_IRQS) {
       CfgTx* cfg = new CfgTx(0, 0);
@@ -73,7 +74,7 @@ int main(int argc, char** argv) {
 
       cdrv->drive(cfg);
       cfg_mon->monitor();
-      step_cc(&cx, 1);
+      step_half_cc(&cx, 1);
       cfg_instr++;
   }
   cx.dut->cfg_req_i   = 0;
@@ -92,10 +93,11 @@ int main(int argc, char** argv) {
     }
 
     idrv->drive(tx);
+    odrv->drive();
     in_mon->monitor();
     out_mon->monitor();
 
-    step_half_cc(&cx, 2);
+    step_half_cc(&cx, 1);
 
     if (mtime_pre == PRESCALE-1) {
       mtime_pre = 0;
