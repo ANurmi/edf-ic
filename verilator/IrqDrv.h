@@ -22,13 +22,15 @@ class IrqInDrv {
         }
 
         void drive(IrqInTx *tx){
+
             // Don't drive anything if a transaction item doesn't exist
             if(tx != NULL){
-                delta_delay(cx);
-                cx->dut->irq_i = tx->vec;
-                if (tx->vec != 0)
-                    printf("[IrqInDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
-                delete tx;
+                if (cx->sim_time % 3 == 0) {
+                    cx->dut->irq_i = tx->vec;
+                    if (tx->vec != 0)
+                        printf("[IrqInDrv] Driving vector %02x at time %ld\n", tx->vec, cx->sim_time);
+                    delete tx;
+                }
             }
         }
 };
