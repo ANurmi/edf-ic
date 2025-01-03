@@ -52,13 +52,12 @@ class IrqOutDrv {
             if (cx->dut->irq_valid_o) {
                 if (prev_valid) {
                     prev_valid = 0;
-                    delay += rand() % 200;
                     if (delay >= 200) {
                         delay = 0;
                         cx->dut->irq_ready_i = 1;
-                    }
-                }
-                else
+                    } else
+                        delay += rand() % 200;
+                } else
                     prev_valid = 1;
             }
         }

@@ -37,7 +37,7 @@ class ClkRstDrv {
         }
 
         void mtime(uint8_t prescale, uint32_t clk_per) {
-            if (mtime_pre == (4* clk_per * prescale)-1) {
+            if (mtime_pre == (2 * clk_per * prescale)-1) {
               mtime_pre = 0;
               mtimer++;
             } else
