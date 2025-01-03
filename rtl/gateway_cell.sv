@@ -1,5 +1,6 @@
 module gateway_cell #(
-  parameter int unsigned TsWdith = 64
+  parameter int unsigned TsWdith     = 64,
+  parameter int unsigned OffsetWidth = 24
 )(
   input  logic               clk_i,
   input  logic               rst_ni,
@@ -14,9 +15,9 @@ module gateway_cell #(
   output logic               ip_o
 );
 
-logic [TsWdith-1:0] timestamp, timestamp_r;
-logic [TsWdith-1:0] offset, offset_r;
-logic               ip_d, ip_q;
+logic     [TsWdith-1:0] timestamp, timestamp_r;
+logic [OffsetWidth-1:0] offset, offset_r;
+logic                   ip_d, ip_q;
 
 always_ff @(posedge clk_i or negedge rst_ni)
   begin : g_regs
@@ -36,6 +37,8 @@ always_comb
     timestamp = timestamp_r;
     offset    = offset_r;
     ip_d      = ip_q;
+    if (cfg_req_i)
+      offset  = cfg_wdata_i[OffsetWidth-1:0];
     if (claim_i) begin
       timestamp = 0;
       ip_d      = 0;
@@ -45,7 +48,7 @@ always_comb
     end
   end
 
-assign dl_o = offset_r + timestamp_r;
+assign dl_o = 64'(offset_r) + timestamp_r;
 assign ip_o = ip_q;
 
 

@@ -20,15 +20,16 @@ int main(int argc, char** argv) {
   // init stage
   //Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
-  VerilatedFstC*   tfp       = new VerilatedFstC;
-  Vedf_ic*         top       = new Vedf_ic;
-  vluint64_t       sim_time  = 0;
-  vluint64_t       rst_delay = 80;
-  vluint64_t       clk_delay = 20;
-  bool             cfg_done  = 0;
-  bool             sim_done  = 0;
-  int              tx_count  = 0;
-  int              cfg_instr = 0;
+  VerilatedFstC*   tfp          = new VerilatedFstC;
+  Vedf_ic*         top          = new Vedf_ic;
+  vluint64_t       sim_time     = 0;
+  vluint64_t       rst_delay    = 80;
+  vluint64_t       clk_delay    = 20;
+  bool             cfg_done     = 0;
+  bool             sw_pend_done = 0;
+  bool             sim_done     = 0;
+  int              tx_count     = 0;
+  int              cfg_instr    = 0;
 
   SimCtx cx(top, tfp, sim_time);
   ClkRstDrv* rdrv    = new ClkRstDrv(&cx);
@@ -71,10 +72,14 @@ int main(int argc, char** argv) {
             break;
         }
         cfg_instr++;
+      } else if (!sw_pend_done) {
+        cdrv->clear();
+
+        // TODO: implement sw_ip test
+        sw_pend_done = 1;
+
       } else {
-        cx.dut->cfg_req_i   = 0;
-        cx.dut->cfg_addr_i  = 0;
-        cx.dut->cfg_wdata_i = 0;
+        cdrv->clear();
 
         if (tx_count < 10){ // main tb loop
           IrqInTx* tx = rndIrqInTx();

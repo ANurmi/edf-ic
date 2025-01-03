@@ -14,6 +14,12 @@ class CfgDrv {
                         tx->wdata, tx->addr, cx->sim_time);
             delete tx;
         }
+
+        void clear(){
+            cx->dut->cfg_req_i   = 0;
+            cx->dut->cfg_addr_i  = 0;
+            cx->dut->cfg_wdata_i = 0;
+        }
 };
 
 class CfgMon {
