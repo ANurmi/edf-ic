@@ -25,19 +25,13 @@ int main(int argc, char** argv) {
   vluint64_t       sim_time  = 0;
   vluint64_t       rst_delay = 80;
   vluint64_t       clk_delay = 20;
-  vluint64_t       mtimer    = 0;
-  uint8_t          mtime_pre = 0;
   bool             cfg_done  = 0;
   bool             sim_done  = 0;
   int              tx_count  = 0;
   int              cfg_instr = 0;
 
   SimCtx cx(top, tfp, sim_time);
-  //IrqInTx* tx;
-  ClkRstDrv* rdrv    = new ClkRstDrv(&cx, 
-                                    rst_delay, 
-                                    clk_delay, 
-                                    CLOCK_STEP);
+  ClkRstDrv* rdrv    = new ClkRstDrv(&cx);
   IrqInDrv*  idrv    = new IrqInDrv(&cx);
   IrqOutDrv* odrv    = new IrqOutDrv(&cx);
   CfgDrv*    cdrv    = new CfgDrv(&cx);
@@ -53,8 +47,9 @@ int main(int argc, char** argv) {
     bool after_re = (cx.dut->clk_i  && 
                      cx.dut->rst_ni &&
                     (sim_time % (CLOCK_STEP*2) == 0));
-    rdrv->reset();
-    rdrv->clock();
+    rdrv->reset(rst_delay);
+    rdrv->clock(clk_delay, CLOCK_STEP);
+    rdrv->mtime(PRESCALE, CLOCK_STEP);
 
     // drive inputs just after rising edge
     if (after_re) {
@@ -95,14 +90,6 @@ int main(int argc, char** argv) {
         } else
           sim_done = 1;
       }
-
-      // drive mtimer, TODO: integrate to ClkRstDrv
-      if (mtime_pre == PRESCALE-1) {
-        mtime_pre = 0;
-        mtimer++;
-      } else
-        mtime_pre++;
-      cx.dut->mtime_i = mtimer;
   
       odrv->drive();
 
