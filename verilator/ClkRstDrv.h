@@ -6,6 +6,7 @@ class ClkRstDrv {
         vluint64_t clk_delay;
         vluint64_t clk_counter;
         uint32_t   clk_per;
+        uint32_t   per_counter;
 
     public:
         ClkRstDrv(
@@ -19,7 +20,7 @@ class ClkRstDrv {
             this->clk_delay   = clk_delay;
             this->clk_per     = clk_per;
             this->rst_counter = 0;
-            this->clk_counter = 0;
+            this->per_counter = 0;
         }
 
         void reset(){
@@ -30,9 +31,14 @@ class ClkRstDrv {
         }
 
         void clock() { // todo: add period
-            if (clk_counter == clk_delay)
-                cx->dut->clk_i ^= 1;
-            else
+            if (clk_counter == clk_delay){
+                if (per_counter == clk_per - 1) {
+                    per_counter = 0;
+                    cx->dut->clk_i ^= 1;
+                } else {
+                    per_counter++;
+                }
+            } else
                 clk_counter++;
         }
 };
