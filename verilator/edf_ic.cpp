@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
   vluint64_t       clk_delay = 20;
   vluint64_t       mtimer    = 0;
   uint8_t          mtime_pre = 0;
+  bool             cfg_done  = 0;
   bool             sim_done  = 0;
   int              tx_count  = 0;
   int              cfg_instr = 0;
@@ -50,19 +51,50 @@ int main(int argc, char** argv) {
   cx.trace->open("../build/waveform.fst");
 
   while (!sim_done){
+    // drive inputs just after rising edge
+    bool after_re = (cx.dut->clk_i  && 
+                     cx.dut->rst_ni &&
+                    (sim_time % (CLOCK_STEP*2) == 0));
     rdrv->reset();
     rdrv->clock();
-    //cdrv->drive(cfg);
     //idrv->drive(tx);
     odrv->drive();
+
+    if (after_re) {
+      if (cfg_instr != NR_IRQS) {
+
+        switch (cfg_instr)
+        {
+          case 0:
+            cdrv->drive(new CfgTx(0, 0x12));
+            break;
+          case 1:
+            cdrv->drive(new CfgTx(4, 0x6));
+            break;
+          case 2:
+            cdrv->drive(new CfgTx(8, 0x22));
+            break;
+
+          case 3:
+            cdrv->drive(new CfgTx(12, 0x15));
+            break;
+
+          default:
+            break;
+        }
+        cfg_instr++;
+      } else {
+        cx.dut->cfg_req_i   = 0;
+        cx.dut->cfg_addr_i  = 0;
+        cx.dut->cfg_wdata_i = 0;
+      }
+    }
 
     cfg_mon->monitor();
     in_mon->monitor();
     out_mon->monitor();
 
-    cx.dut->eval();
-    cx.trace->dump(cx.sim_time);
-    cx.sim_time++;
+    timestep(&cx);
 
     if (sim_time > 300){
       sim_done = 1;

@@ -28,15 +28,13 @@ class CfgTx {
             this->wdata = wdata;
         }
 };
-/*
 
-void timestep(SimCtx* cx, vluint64_t count) {
-  for(int it = 0; it < count*4; it++){
+void timestep(SimCtx* cx) {
     cx->dut->eval();
     cx->trace->dump(cx->sim_time);
     cx->sim_time++;
-  }
 }
+/*
 
 void clock(SimCtx* cx, vluint64_t count) {
   for (int i=0; i<count; i++){
