@@ -38,21 +38,28 @@ class IrqOutDrv {
     private:
         SimCtx* cx;
         uint8_t delay;
+        bool    prev_valid;
     public:
         IrqOutDrv(SimCtx* cx){
-            this->cx = cx;
+            this->cx         = cx;
+            this->delay      = 0;
+            this->prev_valid = 0;
         }
 
         // drive irq_ready_i with randomized latency after valid_o
         void drive(){
             cx->dut->irq_ready_i = 0;
             if (cx->dut->irq_valid_o) {
-                delay += rand() % 200;
-                if (delay >= 200) {
-                    delay = 0;
-                    cx->dut->irq_ready_i = 1;
+                if (prev_valid) {
+                    prev_valid = 0;
+                    delay += rand() % 200;
+                    if (delay >= 200) {
+                        delay = 0;
+                        cx->dut->irq_ready_i = 1;
+                    }
                 }
-                //printf("[outDrv] delay val: %d \n", delay);
+                else
+                    prev_valid = 1;
             }
         }
 };
