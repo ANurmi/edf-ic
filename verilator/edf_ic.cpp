@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
 
   SimCtx cx(top, tfp, sim_time);
   //IrqInTx* tx;
-  //CfgTx* cfg_tx;
   ClkRstDrv* rdrv    = new ClkRstDrv(&cx, 
                                     rst_delay, 
                                     clk_delay, 
@@ -51,20 +50,16 @@ int main(int argc, char** argv) {
   cx.trace->open("../build/waveform.fst");
 
   while (!sim_done){
-    // drive inputs just after rising edge
     bool after_re = (cx.dut->clk_i  && 
                      cx.dut->rst_ni &&
                     (sim_time % (CLOCK_STEP*2) == 0));
     rdrv->reset();
     rdrv->clock();
-    //idrv->drive(tx);
-    odrv->drive();
 
+    // drive inputs just after rising edge
     if (after_re) {
       if (cfg_instr != NR_IRQS) {
-
-        switch (cfg_instr)
-        {
+        switch (cfg_instr){
           case 0:
             cdrv->drive(new CfgTx(0, 0x12));
             break;
@@ -74,11 +69,9 @@ int main(int argc, char** argv) {
           case 2:
             cdrv->drive(new CfgTx(8, 0x22));
             break;
-
           case 3:
             cdrv->drive(new CfgTx(12, 0x15));
             break;
-
           default:
             break;
         }
@@ -87,116 +80,38 @@ int main(int argc, char** argv) {
         cx.dut->cfg_req_i   = 0;
         cx.dut->cfg_addr_i  = 0;
         cx.dut->cfg_wdata_i = 0;
-      }
-    }
 
-    cfg_mon->monitor();
-    in_mon->monitor();
-    out_mon->monitor();
+        if (tx_count < 10){ // main tb loop
+          IrqInTx* tx = rndIrqInTx();
 
-    timestep(&cx);
-
-    if (sim_time > 300){
-      sim_done = 1;
-    }
-  }
-  // Run stage
-  //reset_dut(&cx);
-  //step_half_cc(&cx, 17);
-
-  // Clock off, reset active
-  //timestep(&cx, 40);
-
-  // Clock on, reset active
-  //clock(&cx, 40);
-  //top->rst_ni = 1;
-  //clock(&cx, 40);
-
-
-/*
-  for (int i=0; i<40; i++)
-  {
-      if (sim_time % CLOCK_STEP == 0){
-        clock = !clock;
-        printf("%d\n", (sim_time % CLOCK_STEP == 0));
-        top->clk_i = clock;
-      }
-      timestep(&cx,1 );
-
-  }
-  while (cfg_instr < NR_IRQS) {
-      CfgTx* cfg = new CfgTx(0, 0);
-
-      switch (cfg_instr)
-      {
-        case 0:
-          cfg->addr  = 0;
-          cfg->wdata = 0x12;
-          break;
-        case 1:
-          cfg->addr  = 4;
-          cfg->wdata = 0x6;
-          break;
-        case 2:
-          cfg->addr  = 8;
-          cfg->wdata = 0x22;
-          break;
-
-        case 3:
-          cfg->addr  = 12;
-          cfg->wdata = 0x15;
-          break;
-
-
-        default:
-          break;
+          if (tx != NULL) {
+            tx_count++;
+          } else {
+            tx = new IrqInTx();
+            tx->vec = 0;
+          }
+  
+          idrv->drive(tx);
+        } else
+          sim_done = 1;
       }
 
-      cdrv->drive(cfg);
+      // drive mtimer, TODO: integrate to ClkRstDrv
+      if (mtime_pre == PRESCALE-1) {
+        mtime_pre = 0;
+        mtimer++;
+      } else
+        mtime_pre++;
+      cx.dut->mtime_i = mtimer;
+  
+      odrv->drive();
+
       cfg_mon->monitor();
-      //step_half_cc(&cx, 1);
-      cfg_instr++;
-
-      if (sim_time % 4 == 0){
-        //clock = !clock;
-        printf("%d\n", (sim_time % 4 == 0));
-        //top->clk_i = clock;
-
-        cfg_instr++;
-      }
-  }
-  cx.dut->cfg_req_i   = 0;
-  cx.dut->cfg_addr_i  = 0;
-  cx.dut->cfg_wdata_i = 0;
-
-  while (tx_count < 10){ // main tb loop
-
-    tx = rndIrqInTx();
-
-    if (tx != NULL) {
-      tx_count++;
-    } else {
-      tx = new IrqInTx();
-      tx->vec = 0;
+      in_mon->monitor();
+      out_mon->monitor();
     }
-
-    idrv->drive(tx);
-    odrv->drive();
-    in_mon->monitor();
-    out_mon->monitor();
-
-    //step_half_cc(&cx, 1);
-
-    if (mtime_pre == PRESCALE-1) {
-      mtime_pre = 0;
-      mtimer++;
-    } else
-      mtime_pre++;
-    cx.dut->mtime_i = mtimer;
-    timestep(&cx, 1);
-
+    timestep(&cx);
   }
-  */
 
   // end stage
   scb->print_queue();
