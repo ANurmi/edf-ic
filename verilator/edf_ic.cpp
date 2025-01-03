@@ -73,11 +73,8 @@ int main(int argc, char** argv) {
         }
         cfg_instr++;
       } else if (!sw_pend_done) {
-        cdrv->clear();
-
-        // TODO: implement sw_ip test
+        cdrv->drive(new CfgTx(4, 0x01000006));        
         sw_pend_done = 1;
-
       } else {
         cdrv->clear();
 

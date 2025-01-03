@@ -37,8 +37,10 @@ always_comb
     timestamp = timestamp_r;
     offset    = offset_r;
     ip_d      = ip_q;
-    if (cfg_req_i)
+    if (cfg_req_i) begin
       offset  = cfg_wdata_i[OffsetWidth-1:0];
+      ip_d    = cfg_wdata_i[24];
+    end
     if (claim_i) begin
       timestamp = 0;
       ip_d      = 0;
