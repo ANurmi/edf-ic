@@ -1,4 +1,3 @@
-// TODO: also poke the claim mechanism
 module edf_ic #(
     parameter  int unsigned NrIrqs   = 4,
     parameter  int unsigned TsWidth  = 64,
@@ -52,11 +51,12 @@ module edf_ic #(
         .cfg_wdata_i,
         .cfg_rdata_o,
         .irq_i    (irq_i[i]),
-        .claim_i  (irq_ready_i),
+        .claim_i  (irq_ready_i & (irq_id_o == i)),
         .dl_o     (dls[i]),
         .ip_o     (ips[i])
     );
     // TODO: also take into account the enable status of the interrupt
+    // on Hippo this is really done by the CLIC itself
     assign masked_dls[i] = ips[i] == 1 ? dls[i] : 'hFFFFFFFF;
   end
 
