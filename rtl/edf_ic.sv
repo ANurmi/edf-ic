@@ -60,14 +60,13 @@ module edf_ic #(
     assign masked_dls[i] = ips[i] == 1 ? dls[i] : 'hFFFFFFFF;
   end
 
-  logic [IdWidth-1:0] winner;
   tree #(
       .TreeValWidth(TsWidth),
       .TreeWidth(NrIrqs),
       .TreePolarity(1)
   ) arb_tree (
       .values(masked_dls),
-      .out(winner)
+      .out(irq_id_o)
   );
 
   //TEMPORARY
