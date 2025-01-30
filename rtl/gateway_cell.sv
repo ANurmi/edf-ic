@@ -1,5 +1,5 @@
 module gateway_cell #(
-    parameter int unsigned TsWdith     = 64,
+    parameter int unsigned TsWidth     = 64,
     parameter int unsigned OffsetWidth = 24
 ) (
     input  logic               clk_i,
@@ -11,11 +11,11 @@ module gateway_cell #(
     input  logic               cfg_we_i,
     input  logic [       31:0] cfg_wdata_i,
     output logic [       31:0] cfg_rdata_o,
-    output logic [TsWdith-1:0] dl_o,
+    output logic [TsWidth-1:0] dl_o,
     output logic               ip_o
 );
 
-  logic [TsWdith-1:0] timestamp, timestamp_r;
+  logic [TsWidth-1:0] timestamp, timestamp_r;
   logic [OffsetWidth-1:0] offset, offset_r;
   logic ip_d, ip_q;
 
