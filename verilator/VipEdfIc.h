@@ -73,7 +73,7 @@ class VipEdfIc {
           m_dut->irq_i = rand();
           for(uint32_t i=0; i<NR_IRQS; i++){
             if (m_dut->irq_i & (1 << i)) {
-              printf("[IRQ_DRIVER] Line %d driven at instant %d\n",
+              printf("[IRQ_DRIVER] Line %d driven at instant %ld\n",
                   i, m_tickcount);
             }
           }
