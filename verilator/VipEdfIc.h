@@ -20,6 +20,8 @@ class VipEdfIc {
       m_dut = NULL;
     }
 
+    void raise_reset(void)
+
     void test(void){ 
       tick(); 
       tick();
