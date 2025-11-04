@@ -15,7 +15,20 @@ int main(int argc, char** argv) {
   Vedf_ic*  dut = new Vedf_ic;
   VipEdfIc* vip = new VipEdfIc(dut, wavePath);
 
-  vip->test();
+  vip->raise_reset();
+
+  vip->configure_irq(0, 200);
+  vip->configure_irq(1, 100);
+  vip->configure_irq(2, 300);
+  vip->configure_irq(3, 50);
+
+  vip->set_pend_irq(1);
+  vip->set_pend_irq(2);
+
+  vip->set_enable_irq(2);
+  vip->set_enable_irq(1);
+
+  vip->drive_rand_irqs(10);
 
   delete vip;
   delete dut;
