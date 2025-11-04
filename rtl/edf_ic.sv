@@ -27,6 +27,8 @@ module edf_ic #(
     // irq_valid_o ACK
     input  logic               irq_ready_i
 );
+
+/*
   logic [      31:0] local_addr;
   logic [NrIrqs-1:0] reqs;
   logic [NrIrqs-1:0] ips;
@@ -71,5 +73,5 @@ module edf_ic #(
 
   //TEMPORARY
   assign irq_valid_o = |ips;
-
+*/
 endmodule : edf_ic
