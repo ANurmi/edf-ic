@@ -47,18 +47,24 @@ class VipEdfIc {
     }
 
     void configure_irq(uint8_t idx, uint16_t offs){
-      cfg_write(idx*4, (uint32_t)(offs << 16));
+      cfg_write(idx*4, (uint32_t)(offs << 8));
       printf("[CFG_DRIVER] Set line %d to offset %d\n",
           idx, offs);
     }
 
     void set_pend_irq(uint8_t idx){
-      cfg_write(idx*4, (1 << IP_OFFS));
+      const uint32_t line_addr = idx*4;
+      uint32_t read_val = cfg_read(line_addr);
+      uint32_t masked   = read_val | (1 << IP_OFFS);
+      cfg_write(line_addr, masked);
       printf("[CFG_DRIVER] Set IP on line %d\n", idx);
     }
 
     void set_enable_irq(uint8_t idx){
-      cfg_write(idx*4, (1 << IE_OFFS));
+      const uint32_t line_addr = idx*4;
+      uint32_t read_val = cfg_read(line_addr);
+      uint32_t masked   = read_val | (1 << IE_OFFS);
+      cfg_write(line_addr, masked);
       printf("[CFG_DRIVER] Set IE on line %d\n", idx);
     }
 
@@ -147,6 +153,17 @@ class VipEdfIc {
       m_dut->cfg_wdata_i = 0;
       m_dut->cfg_we_i    = 0;
       m_dut->cfg_req_i   = 0;
+    }
+
+    uint32_t cfg_read(uint32_t addr) {
+      m_dut->cfg_addr_i  = addr;
+      m_dut->cfg_we_i    = 0;
+      m_dut->cfg_req_i   = 1;
+      cycles(1);
+      m_dut->cfg_addr_i  = 0;
+      m_dut->cfg_we_i    = 0;
+      m_dut->cfg_req_i   = 0;
+      return m_dut->cfg_rdata_o;
     }
 
 };

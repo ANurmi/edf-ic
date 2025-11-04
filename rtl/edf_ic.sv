@@ -35,7 +35,7 @@ typedef struct packed {
 line_t [NrIrqs-1:0] lines_d, lines_q;
 
 logic [IdWidth-1:0] local_addr;
-assign local_addr = cfg_addr_i;
+assign local_addr = cfg_addr_i[(IdWidth+2)-1:2];
 
 logic read_event, write_event;
 assign read_event  = cfg_req_i & ~cfg_we_i;
@@ -55,9 +55,21 @@ always_comb begin : cfg_access
   cfg_rdata_o = 32'h0;
 
   if (write_event) begin
-    
+    lines_d[local_addr].dl = cfg_wdata_i[31:8];
+    lines_d[local_addr].trig_pol  = cfg_wdata_i[3];
+    lines_d[local_addr].trig_type = cfg_wdata_i[2];
+    lines_d[local_addr].ip = cfg_wdata_i[1];
+    lines_d[local_addr].ie = cfg_wdata_i[0];
   end
   else if (read_event) begin
+    cfg_rdata_o = {
+      lines_q[local_addr].dl,
+      4'b0,
+      lines_q[local_addr].trig_pol,
+      lines_q[local_addr].trig_type,
+      lines_q[local_addr].ip,
+      lines_q[local_addr].ie
+      };
   end
 
 end : cfg_access
