@@ -18,10 +18,11 @@ module edf_ic #(
     input  logic [NrIrqs-1:0] irq_i,
     // current arbitration winner
     output logic [IdWidth-1:0] irq_id_o,
+    input  logic [IdWidth-1:0] irq_id_i,
+    output logic [TsWidth-1:0] irq_dl_o,
     // there is an active interrupt
     output logic irq_valid_o,
-    // irq_valid_o ACK
-    input  logic irq_ready_i
+    input  logic irq_ack_i
 );
 
 typedef struct packed {
@@ -41,6 +42,23 @@ logic read_event, write_event;
 assign read_event  = cfg_req_i & ~cfg_we_i;
 assign write_event = cfg_req_i &  cfg_we_i;
 
+logic [NrIrqs-1:0]              trig_type;
+logic [NrIrqs-1:0]              trig_polarity;
+logic [NrIrqs-1:0]              valid;
+logic [NrIrqs-1:0]              ip;
+logic [NrIrqs-1:0]              gated;
+logic [NrIrqs-1:0][TsWidth-1:0] dl;
+
+// Interrupt must be pended and enabled to be valid
+for (genvar i=0;i<NrIrqs;i++) begin
+  assign ip[i]            = lines_q[i].ip;
+  assign valid[i]         = lines_q[i].ie & lines_q[i].ip;
+  assign dl[i]            = lines_q[i].dl;
+  assign trig_type[i]     = lines_q[i].trig_type;
+  assign trig_polarity[i] = lines_q[i].trig_pol;
+end
+
+
 always_ff @(posedge clk_i or negedge rst_ni) begin
   if (~rst_ni) begin
     lines_q <= '0;
@@ -49,7 +67,7 @@ always_ff @(posedge clk_i or negedge rst_ni) begin
   end
 end
 
-always_comb begin : cfg_access
+always_comb begin : main_comb
 
   lines_d = lines_q;
   cfg_rdata_o = 32'h0;
@@ -72,17 +90,29 @@ always_comb begin : cfg_access
       };
   end
 
-end : cfg_access
+  // React to external interrupt from gateway
+  if (|gated) begin
+    for(int i=0; i<NrIrqs; i++) begin
+      if(gated[i]) lines_d[i].ip = 1'b1;
+    end
+  end
+
+  // Claim acknowledged interrupt
+  if (irq_ack_i) begin
+    lines_d[irq_id_i].ip = 1'b0;
+  end
+
+end : main_comb
 
 irq_arbiter #(
   .NrInputs (NrIrqs),
   .PrioWidth(TsWidth)
 ) i_arb (
-  .valid_i (),
-  .valid_o (),
-  .prio_i  (),
-  .prio_o  (),
-  .idx_o   ()
+  .valid_i (valid),
+  .valid_o (irq_valid_o),
+  .prio_i  (dl),
+  .prio_o  (irq_dl_o),
+  .idx_o   (irq_id_o)
 );
 
 irq_gateway #(
@@ -90,11 +120,11 @@ irq_gateway #(
 ) i_gw (
   .clk_i,
   .rst_ni,
-  .trig_polarity_i (),
-  .trig_type_i (),
-  .ip_i   (),
-  .irqs_i (),
-  .irqs_o ()
+  .trig_polarity_i (trig_polarity),
+  .trig_type_i     (trig_type),
+  .ip_i            (ip),
+  .irqs_i          (irq_i),
+  .irqs_o          (gated)
 );
 
 endmodule : edf_ic

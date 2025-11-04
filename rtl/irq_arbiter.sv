@@ -89,7 +89,7 @@ function sel_e arbitrate(
     // B wins based on validity alone
     if (~valid_a) sel = SEL_B;
     // both inputs valid => comparison required
-    else if (prio_a < prio_b) sel = SEL_B;
+    else if (prio_a > prio_b) sel = SEL_B;
   end
 
   return sel;
