@@ -2,7 +2,7 @@ module edf_ic #(
     parameter  int unsigned NrIrqs     = 4,
     parameter  int unsigned TsWidth    = 24,
     // Set clipping of TS to exchange bits for granularity
-    parameter  int unsigned TsClip     = 4,
+    parameter  int unsigned TsClip     = 0,
     parameter  int unsigned BaseAddr   = 0,
     localparam int unsigned OutTsWidth = TsWidth + TsClip,
     localparam int unsigned IdWidth    = $clog2(NrIrqs)
@@ -34,6 +34,7 @@ typedef struct packed {
   logic trig_type;
   logic trig_pol;
   logic [TsWidth-1:0] dl;
+  logic [TsWidth-1:0] ts;
 } line_t;
 
 line_t [NrIrqs-1:0] lines_d, lines_q;
@@ -52,13 +53,13 @@ logic [NrIrqs-1:0]              trig_polarity;
 logic [NrIrqs-1:0]              valid;
 logic [NrIrqs-1:0]              ip;
 logic [NrIrqs-1:0]              gated;
-logic [NrIrqs-1:0][TsWidth-1:0] dl;
+logic [NrIrqs-1:0][TsWidth-1:0] ts;
 
 // Interrupt must be pended and enabled to be valid
 for (genvar i=0;i<NrIrqs;i++) begin
   assign ip[i]            = lines_q[i].ip;
   assign valid[i]         = lines_q[i].ie & lines_q[i].ip;
-  assign dl[i]            = lines_q[i].dl;
+  assign ts[i]            = lines_q[i].ts;
   assign trig_type[i]     = lines_q[i].trig_type;
   assign trig_polarity[i] = lines_q[i].trig_pol;
 end
@@ -100,7 +101,7 @@ always_comb begin : main_comb
     for(int i=0; i<NrIrqs; i++) begin
       if(gated[i]) begin
         lines_d[i].ip = 1'b1;
-        lines_d[i].dl = lines_q[i].dl + mtime_i[(TsWidth-1)+TsClip:TsClip];
+        lines_d[i].ts = lines_q[i].dl + mtime_i[(TsWidth-1)+TsClip:TsClip];
       end
     end
   end
@@ -118,7 +119,7 @@ irq_arbiter #(
 ) i_arb (
   .valid_i (valid),
   .valid_o (irq_valid_o),
-  .prio_i  (dl),
+  .prio_i  (ts),
   .prio_o  (irq_dl_arb),
   .idx_o   (irq_id_o)
 );
@@ -135,7 +136,11 @@ irq_gateway #(
   .irqs_o          (gated)
 );
 
-assign irq_dl_o = {irq_dl_arb, (TsClip'(0))};
+if (TsClip == 0) begin
+  assign irq_dl_o = irq_dl_arb;
+end else begin
+  assign irq_dl_o = {irq_dl_arb, (TsClip'(0))};
+end
 
 endmodule : edf_ic
 
