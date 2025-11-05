@@ -1,8 +1,11 @@
 module edf_ic #(
-    parameter  int unsigned NrIrqs   = 4,
-    parameter  int unsigned TsWidth  = 24,
-    parameter  int unsigned BaseAddr = 0,
-    localparam int unsigned IdWidth  = $clog2(NrIrqs)
+    parameter  int unsigned NrIrqs     = 4,
+    parameter  int unsigned TsWidth    = 24,
+    // Set clipping of TS to exchange bits for granularity
+    parameter  int unsigned TsClip     = 4,
+    parameter  int unsigned BaseAddr   = 0,
+    localparam int unsigned OutTsWidth = TsWidth + TsClip,
+    localparam int unsigned IdWidth    = $clog2(NrIrqs)
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -19,7 +22,7 @@ module edf_ic #(
     // current arbitration winner
     output logic [IdWidth-1:0] irq_id_o,
     input  logic [IdWidth-1:0] irq_id_i,
-    output logic [TsWidth-1:0] irq_dl_o,
+    output logic [OutTsWidth-1:0] irq_dl_o,
     // there is an active interrupt
     output logic irq_valid_o,
     input  logic irq_ack_i
@@ -37,6 +40,8 @@ line_t [NrIrqs-1:0] lines_d, lines_q;
 
 logic [IdWidth-1:0] local_addr;
 assign local_addr = cfg_addr_i[(IdWidth+2)-1:2];
+
+logic [TsWidth-1:0] irq_dl_arb;
 
 logic read_event, write_event;
 assign read_event  = cfg_req_i & ~cfg_we_i;
@@ -73,7 +78,7 @@ always_comb begin : main_comb
   cfg_rdata_o = 32'h0;
 
   if (write_event) begin
-    lines_d[local_addr].dl = cfg_wdata_i[31:8];
+    lines_d[local_addr].dl = cfg_wdata_i[(TsWidth+8)-1:8];
     lines_d[local_addr].trig_pol  = cfg_wdata_i[3];
     lines_d[local_addr].trig_type = cfg_wdata_i[2];
     lines_d[local_addr].ip = cfg_wdata_i[1];
@@ -95,7 +100,7 @@ always_comb begin : main_comb
     for(int i=0; i<NrIrqs; i++) begin
       if(gated[i]) begin
         lines_d[i].ip = 1'b1;
-        lines_d[i].dl = lines_q[i].dl + mtime_i[TsWidth-1:0];
+        lines_d[i].dl = lines_q[i].dl + mtime_i[(TsWidth-1)+TsClip:TsClip];
       end
     end
   end
@@ -114,7 +119,7 @@ irq_arbiter #(
   .valid_i (valid),
   .valid_o (irq_valid_o),
   .prio_i  (dl),
-  .prio_o  (irq_dl_o),
+  .prio_o  (irq_dl_arb),
   .idx_o   (irq_id_o)
 );
 
@@ -129,6 +134,8 @@ irq_gateway #(
   .irqs_i          (irq_i),
   .irqs_o          (gated)
 );
+
+assign irq_dl_o = {irq_dl_arb, (TsClip'(0))};
 
 endmodule : edf_ic
 
