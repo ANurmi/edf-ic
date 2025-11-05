@@ -22,11 +22,15 @@ int main(int argc, char** argv) {
   vip->configure_irq(2, 300);
   vip->configure_irq(3, 50);
 
+  vip->delay(20);
+
   vip->set_pend_irq(1);
   vip->set_pend_irq(2);
 
+  vip->set_enable_irq(3);
   vip->set_enable_irq(2);
   vip->set_enable_irq(1);
+  vip->set_enable_irq(0);
 
   vip->drive_rand_irqs(10);
 

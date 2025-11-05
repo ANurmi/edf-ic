@@ -68,22 +68,35 @@ class VipEdfIc {
       printf("[CFG_DRIVER] Set IE on line %d\n", idx);
     }
 
+    void delay(uint32_t count) {cycles(count);}
+
     void drive_rand_irqs(uint32_t tx_limit) {
       uint32_t tx_count = 0;
       while (tx_count < tx_limit) {
 
-        m_dut->irq_i = 0;
+        m_dut->irq_i     = 0;
+        m_dut->irq_ack_i = 0;
+        m_dut->irq_id_i  = 0;
+
+        // Acknowledge valid interrupt with variable latency
+        if (m_dut->irq_valid_o & (rand() % 3 == 0)) {
+          m_dut->irq_ack_i = 1;
+          m_dut->irq_id_i = m_dut->irq_id_o;
+          printf("[IRQ_DRIVER] Ack interrupt on line %d with dl %d at mtime %ld\n",
+              m_dut->irq_id_o, m_dut->irq_dl_o, m_dut->mtime_i);
+        }
+
+        if (m_dut->irq_ack_i) {
+        }
 
         if (rand() % 15 == 0){
-          //printf("%d, %d\n", tx_count, m_tickcount);
           m_dut->irq_i = rand();
           for(uint32_t i=0; i<NR_IRQS; i++){
             if (m_dut->irq_i & (1 << i)) {
-              printf("[IRQ_DRIVER] Line %d driven at instant %ld\n",
-                  i, m_tickcount);
+              printf("[IRQ_DRIVER] Line %d driven at mtime %ld\n",
+                  i, m_dut->mtime_i);
             }
           }
-
           tx_count++;
         }
 

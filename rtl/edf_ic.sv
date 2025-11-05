@@ -73,7 +73,7 @@ always_comb begin : main_comb
   cfg_rdata_o = 32'h0;
 
   if (write_event) begin
-    lines_d[local_addr].dl = cfg_wdata_i[31:8];
+    lines_d[local_addr].dl = cfg_wdata_i[31:8] + mtime_i[TsWidth-1:0];
     lines_d[local_addr].trig_pol  = cfg_wdata_i[3];
     lines_d[local_addr].trig_type = cfg_wdata_i[2];
     lines_d[local_addr].ip = cfg_wdata_i[1];
@@ -93,7 +93,10 @@ always_comb begin : main_comb
   // React to external interrupt from gateway
   if (|gated) begin
     for(int i=0; i<NrIrqs; i++) begin
-      if(gated[i]) lines_d[i].ip = 1'b1;
+      if(gated[i]) begin
+        lines_d[i].ip = 1'b1;
+        lines_d[i].dl = lines_q[i].dl + mtime_i[TsWidth-1:0];
+      end
     end
   end
 
