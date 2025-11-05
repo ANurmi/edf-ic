@@ -1,5 +1,5 @@
 DUT = edf_ic
-TB  = $(VERIL_DIR)/$(DUT).cpp
+TB  = $(VERIL_DIR)/TbEdfIc.cpp
 
 .PHONY: lint
 lint:
@@ -12,7 +12,7 @@ lint:
 verilate:
 	verilator \
 	$(shell bender script flist) \
-	--cc $(VERIL_DIR)/$(DUT).cpp \
+	--cc $(TB) \
 	--build --exe \
 	-O3 \
 	-sv \
