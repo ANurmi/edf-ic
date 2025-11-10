@@ -33,7 +33,7 @@ typedef struct packed {
   logic ie;
   logic trig_type;
   logic trig_pol;
-  logic [TsWidth-1:0] dl;
+  logic [TsWidth-2:0] dl; // zero-extended
   logic [TsWidth-1:0] ts;
 } line_t;
 
@@ -59,7 +59,7 @@ logic [NrIrqs-1:0][TsWidth-1:0] ts;
 for (genvar i=0;i<NrIrqs;i++) begin
   assign ip[i]            = lines_q[i].ip;
   assign valid[i]         = lines_q[i].ie & lines_q[i].ip;
-  assign ts[i]            = lines_q[i].ts;
+  assign ts[i]            = lines_q[i].ts - mtime_i[(TsWidth-1)+TsClip:TsClip]; // make relative for comparison
   assign trig_type[i]     = lines_q[i].trig_type;
   assign trig_polarity[i] = lines_q[i].trig_pol;
 end
@@ -79,7 +79,7 @@ always_comb begin : main_comb
   cfg_rdata_o = 32'h0;
 
   if (write_event) begin
-    lines_d[local_addr].dl = cfg_wdata_i[(TsWidth+8)-1:8];
+    lines_d[local_addr].dl = cfg_wdata_i[(TsWidth+8-1)-1:8];
     lines_d[local_addr].trig_pol  = cfg_wdata_i[3];
     lines_d[local_addr].trig_type = cfg_wdata_i[2];
     lines_d[local_addr].ip = cfg_wdata_i[1];
@@ -87,6 +87,7 @@ always_comb begin : main_comb
   end
   else if (read_event) begin
     cfg_rdata_o = {
+      1'b0,
       lines_q[local_addr].dl,
       4'b0,
       lines_q[local_addr].trig_pol,
@@ -101,7 +102,7 @@ always_comb begin : main_comb
     for(int i=0; i<NrIrqs; i++) begin
       if(gated[i]) begin
         lines_d[i].ip = 1'b1;
-        lines_d[i].ts = lines_q[i].dl + mtime_i[(TsWidth-1)+TsClip:TsClip];
+        lines_d[i].ts = {1'b0, lines_q[i].dl} + mtime_i[(TsWidth-1)+TsClip:TsClip];
       end
     end
   end
