@@ -1,10 +1,10 @@
 package:
   name: edf-ic
   authors:
-    - "Antti Nurmi <antti.nurmi@tuni.fi>"
+    - ""
 
 dependencies:
-  #hippomenes-tree: {git: "git@github.com:onsdagens/hippomenes-tree.git", rev: "master"}
+
 
 sources:
   files:
